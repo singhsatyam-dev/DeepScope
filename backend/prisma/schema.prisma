@@ -1,0 +1,36 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Research {
+  id                Int              @id @default(autoincrement())
+  question          String           @db.VarChar(1000)
+  status            String           @default("pending")
+  report            String?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  searchesPerformed Int              @default(0)
+  sources           ResearchSource[]
+
+  @@map("researches")
+}
+
+model ResearchSource {
+  id             Int      @id @default(autoincrement())
+  title          String
+  url            String
+  content        String?
+  relevanceScore Float?
+  researchId     Int
+  createdAt      DateTime @default(now())
+  research       Research @relation(fields: [researchId], references: [id], onDelete: Cascade)
+
+  @@unique([researchId, url])
+  @@index([researchId])
+  @@map("research_sources")
+}
