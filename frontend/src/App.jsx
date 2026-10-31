@@ -9,7 +9,7 @@ function App() {
         </p>
 
         <button className="rounded-lg bg-blue-600 px-6 py-3 text-white hover:bg-blue-700 transition">
-          Start Researching
+          Start Researching Jia mata di
         </button>
       </div>
     </div>
