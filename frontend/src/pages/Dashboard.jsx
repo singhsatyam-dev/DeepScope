@@ -55,22 +55,10 @@ function Dashboard() {
 
   // Delete research.
   const handleDeleteResearch = async (id) => {
-    const confirmed = window.confirm(
-      "Are you sure you want to delete this research? This action cannot be undone.",
-    );
-
-    if (!confirmed) return;
-
-    setDeleteError("");
-
     try {
       await dispatch(deleteResearch(id)).unwrap();
     } catch (error) {
-      setDeleteError(
-        typeof error === "string"
-          ? error
-          : "Unable to delete research. Please try again.",
-      );
+      console.error("Failed to delete research:", error);
     }
   };
 

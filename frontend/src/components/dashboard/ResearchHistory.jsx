@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import {
   Clock3,
@@ -9,6 +10,7 @@ import {
 } from "lucide-react";
 
 import SectionHeading from "./SectionHeading";
+import ConfirmDialog from "./ConfirmDIalog";
 
 function ResearchHistory({
   researches,
@@ -18,6 +20,7 @@ function ResearchHistory({
   deleteError,
   onDelete,
 }) {
+  const [researchToDelete, setResearchToDelete] = useState(null);
   return (
     <section id="research-history" className="scroll-mt-24">
       <SectionHeading
@@ -99,7 +102,7 @@ function ResearchHistory({
 
                 <button
                   type="button"
-                  onClick={() => onDelete(item.id)}
+                  onClick={() => setResearchToDelete(item)}
                   disabled={deleting}
                   aria-label={`Delete research: ${item.question}`}
                   title="Delete research"
@@ -116,6 +119,25 @@ function ResearchHistory({
           ))}
         </div>
       )}
+
+      <ConfirmDialog
+        open={Boolean(researchToDelete)}
+        title="Delete this research?"
+        message={
+          researchToDelete
+            ? `Are you sure you want to delete "${researchToDelete.question}"? This action cannot be undone.`
+            : ""
+        }
+        confirmLabel="Delete Research"
+        onConfirm={() => {
+          if (!researchToDelete) return;
+
+          onDelete(researchToDelete.id);
+          setResearchToDelete(null);
+        }}
+        onCancel={() => setResearchToDelete(null)}
+        loading={deleting}
+      />
     </section>
   );
 }

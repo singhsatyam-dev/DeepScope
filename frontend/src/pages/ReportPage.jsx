@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import {
   ArrowLeft,
   ExternalLink,
@@ -18,6 +19,8 @@ import {
   fetchResearchById,
   deleteResearch,
 } from "../features/research/researchSlice";
+
+import ConfirmDialog from "../components/dashboard/ConfirmDIalog";
 
 const markdownComponents = {
   h1: ({ children }) => (
@@ -112,6 +115,7 @@ function ReportPage() {
 
   const [deleteError, setDeleteError] = useState("");
   const [copyStatus, setCopyStatus] = useState("idle");
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const research = currentResearch?.id === Number(id) ? currentResearch : null;
 
@@ -132,18 +136,14 @@ function ReportPage() {
   };
 
   const handleDelete = async () => {
-    const confirmed = window.confirm(
-      "Are you sure you want to delete this research? This action cannot be undone.",
-    );
-
-    if (!confirmed) return;
-
     setDeleteError("");
 
     try {
       await dispatch(deleteResearch(id)).unwrap();
 
-      navigate("/", {
+      setShowDeleteDialog(false);
+
+      navigate("/dashboard", {
         state: { scrollTo: "research-history" },
       });
     } catch (error) {
@@ -197,7 +197,7 @@ function ReportPage() {
 
           <button
             type="button"
-            onClick={handleDelete}
+            onClick={() => setShowDeleteDialog(true)}
             disabled={deleting}
             className="inline-flex items-center gap-2 rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-2 text-sm font-medium text-red-400 transition hover:border-red-500/40 hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-50"
           >
@@ -288,7 +288,10 @@ function ReportPage() {
 
         <article className="rounded-2xl border border-white/[0.07] bg-[#181818] p-6 font-sans sm:p-10 lg:p-12">
           <div className="mx-auto max-w-4xl">
-            <ReactMarkdown components={markdownComponents}>
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              components={markdownComponents}
+            >
               {research.report || "No report content available."}
             </ReactMarkdown>
           </div>
@@ -326,6 +329,16 @@ function ReportPage() {
           DeepScope · Go beyond the surface.
         </footer>
       </div>
+
+      <ConfirmDialog
+        open={showDeleteDialog}
+        title="Delete this research?"
+        message="This research report and its associated sources will be permanently deleted. This action cannot be undone."
+        confirmLabel="Delete Research"
+        onConfirm={handleDelete}
+        onCancel={() => setShowDeleteDialog(false)}
+        loading={deleting}
+      />
     </main>
   );
 }

@@ -23,7 +23,7 @@ export const createResearchController = async (req, res, next) => {
       });
     }
 
-    const research = await createResearch(question.trim());
+    const research = await createResearch(question.trim(), req.user.id);
 
     return res.status(201).json({
       success: true,
@@ -37,7 +37,7 @@ export const createResearchController = async (req, res, next) => {
 
 export const getAllResearchesController = async (req, res, next) => {
   try {
-    const researches = await getAllResearches();
+    const researches = await getAllResearches(req.user.id);
 
     return res.status(200).json({
       success: true,
@@ -60,7 +60,7 @@ export const getResearchByIdController = async (req, res, next) => {
       });
     }
 
-    const research = await getResearchById(id);
+    const research = await getResearchById(id, req.user.id);
 
     if (!research) {
       return res.status(404).json({
@@ -89,7 +89,14 @@ export const deleteResearchController = async (req, res, next) => {
       });
     }
 
-    await deleteResearch(id);
+    const deleted = await deleteResearch(id, req.user.id);
+
+    if (!deleted) {
+      return res.status(404).json({
+        success: false,
+        message: "Research not found",
+      });
+    }
 
     return res.status(200).json({
       success: true,

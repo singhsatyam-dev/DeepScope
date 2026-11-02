@@ -6,43 +6,70 @@ import {
   Settings,
   Search,
   X,
+  LogOut,
 } from "lucide-react";
 
+import { useState } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { logoutUser } from "../../features/auth/authSlice";
+import ConfirmDialog from "../dashboard/ConfirmDIalog";
 
 function Sidebar({ open, onClose }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const dispatch = useDispatch();
 
-  const navigation = [{ label: "Discover", icon: Compass, to: "/" }];
+  const { user, loading } = useSelector((state) => state.auth);
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
 
-  const handleMyResearch = () => {
+  const navigation = [{ label: "Discover", icon: Compass, to: "/dashboard" }];
+
+  const getInitials = (name = "") =>
+    name
+      .trim()
+      .split(/\s+/)
+      .slice(0, 2)
+      .map((part) => part[0])
+      .join("")
+      .toUpperCase() || "U";
+
+  const scrollToSection = (sectionId) => {
     onClose?.();
 
-    if (location.pathname === "/") {
-      document.getElementById("research-history")?.scrollIntoView({
+    if (location.pathname === "/dashboard") {
+      document.getElementById(sectionId)?.scrollIntoView({
         behavior: "smooth",
         block: "start",
       });
     } else {
-      navigate("/", {
-        state: { scrollTo: "research-history" },
+      navigate("/dashboard", {
+        state: { scrollTo: sectionId },
       });
     }
   };
 
-  const handleNewResearch = () => {
-    onClose?.();
+  const handleMyResearch = () => {
+    scrollToSection("research-history");
+  };
 
-    if (location.pathname === "/") {
-      document.getElementById("research-input")?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-    } else {
-      navigate("/", {
-        state: { scrollTo: "research-input" },
-      });
+  const handleNewResearch = () => {
+    scrollToSection("research-input");
+  };
+
+  const handleLogout = async () => {
+    setLoggingOut(true);
+
+    try {
+      await dispatch(logoutUser()).unwrap();
+      setShowLogoutDialog(false);
+      onClose?.();
+      navigate("/login", { replace: true });
+    } catch (error) {
+      console.error("Logout failed:", error);
+    } finally {
+      setLoggingOut(false);
     }
   };
 
@@ -63,7 +90,11 @@ function Sidebar({ open, onClose }) {
       >
         {/* Brand */}
         <div className="flex h-[76px] items-center justify-between px-6">
-          <Link to="/" onClick={onClose} className="flex items-center gap-3">
+          <Link
+            to="/dashboard"
+            onClick={onClose}
+            className="flex items-center gap-3"
+          >
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#E50914]">
               <Search size={21} className="text-white" />
             </div>
@@ -149,18 +180,42 @@ function Sidebar({ open, onClose }) {
             Settings
           </button>
 
+          {/* User Profile */}
           <div className="mt-4 flex items-center gap-3 rounded-lg bg-white/[0.04] p-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#303030] text-sm font-bold text-white">
-              DS
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#303030] text-sm font-bold text-white">
+              {getInitials(user?.name)}
             </div>
 
-            <div>
-              <p className="text-sm font-medium text-white">Researcher</p>
-              <p className="text-xs text-neutral-500">Personal workspace</p>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-medium text-white">
+                {user?.name || "Researcher"}
+              </p>
+              <p className="truncate text-xs text-neutral-500">
+                {user?.email || "Personal workspace"}
+              </p>
             </div>
           </div>
+
+          {/* Logout */}
+          <button
+            onClick={() => setShowLogoutDialog(true)}
+            disabled={loggingOut}
+            className="mt-2 flex w-full items-center gap-3 rounded-lg px-3 py-3 text-sm text-neutral-400 transition hover:bg-red-500/10 hover:text-red-400 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <LogOut size={18} />
+            {loggingOut ? "Logging out..." : "Log out"}
+          </button>
         </div>
       </aside>
+      <ConfirmDialog
+        open={showLogoutDialog}
+        title="Log out of DeepScope?"
+        message="Are you sure you want to log out? You'll need to sign in again to access your research."
+        confirmLabel="Log out"
+        onConfirm={handleLogout}
+        onCancel={() => setShowLogoutDialog(false)}
+        loading={loggingOut}
+      />
     </>
   );
 }

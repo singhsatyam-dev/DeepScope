@@ -7,7 +7,11 @@ import {
   deleteResearchController,
 } from "../controllers/research.controller.js";
 
+import { authMiddleware } from "../Middlewares/auth.middleware.js";
+
 const researchRouter = express.Router();
+
+researchRouter.use(authMiddleware);
 
 researchRouter.post("/", createResearchController);
 researchRouter.get("/", getAllResearchesController);

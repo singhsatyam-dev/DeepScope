@@ -87,10 +87,17 @@ const researchSlice = createSlice({
     clearCurrentResearch: (state) => {
       state.currentResearch = null;
     },
+
+    clearResearchState: () => initialState,
   },
 
   extraReducers: (builder) => {
     builder
+      // Reset research data when authentication changes
+      .addCase("auth/login/fulfilled", () => initialState)
+      .addCase("auth/logout/fulfilled", () => initialState)
+      .addCase("auth/checkAuth/rejected", () => initialState)
+
       // Create research
       .addCase(createResearch.pending, (state) => {
         state.creating = true;
@@ -161,7 +168,7 @@ const researchSlice = createSlice({
   },
 });
 
-export const { clearResearchError, clearCurrentResearch } =
+export const { clearResearchError, clearCurrentResearch, clearResearchState } =
   researchSlice.actions;
 
 export default researchSlice.reducer;

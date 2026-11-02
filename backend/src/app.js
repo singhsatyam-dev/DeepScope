@@ -1,7 +1,9 @@
 import express from "express";
 import cors from "cors";
+import cookiParser from "cookie-parser";
 
 import researchRouter from "./routes/research.routes.js";
+import authRouter from "./routes/auth.routes.js";
 
 import { errorMiddleware } from "./Middlewares/error.middleware.js";
 
@@ -16,6 +18,7 @@ app.use(
 );
 
 app.use(express.json());
+app.use(cookiParser());
 
 // Root route
 app.get("/", (req, res) => {
@@ -25,8 +28,9 @@ app.get("/", (req, res) => {
   });
 });
 
+app.use("/api/auth", authRouter);
 app.use("/api/research", researchRouter);
 
-app.use(errorMiddleware)
+app.use(errorMiddleware);
 
 export default app;

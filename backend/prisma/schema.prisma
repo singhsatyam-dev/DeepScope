@@ -1,3 +1,4 @@
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -5,6 +6,18 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int        @id @default(autoincrement())
+  name         String     @db.VarChar(100)
+  email        String     @unique @db.VarChar(255)
+  passwordHash String
+  researches   Research[]
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@map("users")
 }
 
 model Research {
@@ -15,8 +28,11 @@ model Research {
   createdAt         DateTime         @default(now())
   updatedAt         DateTime         @updatedAt
   searchesPerformed Int              @default(0)
+  userId            Int?
+  user              User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
   sources           ResearchSource[]
 
+  @@index([userId, createdAt])
   @@map("researches")
 }
 
