@@ -10,17 +10,48 @@ import { errorMiddleware } from "./Middlewares/error.middleware.js";
 
 const app = express();
 
-const allowedOrigins = ["http://localhost:5173", process.env.CLIENT_URL].filter(
-  Boolean,
-);
+// const allowedOrigins = ["http://localhost:5173", process.env.CLIENT_URL].filter(
+//   Boolean,
+// );
 
-// Middleware
+// // Middleware
+// app.use(
+//   cors({
+//     origin: (origin, callback) => {
+//       if (!origin || allowedOrigins.includes(origin)) {
+//         return callback(null, true);
+//       }
+
+//       return callback(new Error("Not allowed by CORS"));
+//     },
+//     credentials: true,
+//   }),
+// );
+const normalizeOrigin = (origin) =>
+  origin?.trim().replace(/\/+$/, "");
+
+const allowedOrigins = [
+  "http://localhost:5173",
+  process.env.CLIENT_URL,
+]
+  .map(normalizeOrigin)
+  .filter(Boolean);
+
+console.log("CLIENT_URL from Render:", process.env.CLIENT_URL);
+console.log("Allowed origins:", allowedOrigins);
+
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
+      const normalizedOrigin = normalizeOrigin(origin);
+
+      console.log("Incoming request origin:", normalizedOrigin);
+
+      if (!origin || allowedOrigins.includes(normalizedOrigin)) {
         return callback(null, true);
       }
+
+      console.error("Blocked origin:", normalizedOrigin);
 
       return callback(new Error("Not allowed by CORS"));
     },
@@ -53,3 +84,5 @@ app.use("/api/research", researchRouter);
 app.use(errorMiddleware);
 
 export default app;
+
+
